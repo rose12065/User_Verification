@@ -104,7 +104,7 @@ const RegistrationForm: React.FC = () => {
       if (isClient) {
         setTimeout(() => {
           sessionStorage.setItem('email',formData.email); 
-          router.push(`/verify/verifyPhone?phoneNumber=${encodeURIComponent(formData.phoneNumber)}`);
+          router.push(`/verify/verifyEmail`);
         }, 3000); 
       }
     } catch (error) {
