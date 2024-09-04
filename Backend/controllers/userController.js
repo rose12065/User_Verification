@@ -3,13 +3,16 @@ var nodemailer = require('nodemailer');
 const crypto=require('crypto')
 const axios = require('axios'); 
 const express = require('express');
+const twilio = require('twilio');
 const router = express.Router();
 
+// function for otp generation
 function generateOtp() {
   return crypto.randomInt(100000, 999999).toString();
 }
     const otp = generateOtp();
 
+//Logic for user registration
 exports.register=async(req,res)=>{
     try {
         const { name, email, phoneNumber, aadhar, dob } = req.body;
@@ -21,7 +24,7 @@ exports.register=async(req,res)=>{
       }
 
 }
-
+//logic for feteching phone number from database
 exports.verifyPhone=async (req, res) => {
   const { email } = req.body;
 
@@ -38,36 +41,33 @@ exports.verifyPhone=async (req, res) => {
   }
   }
 
+// logic for senting otp to phone
   exports.sentOtp=async(req,res)=>{
     const { phoneNumber } = req.body;
-
+    const accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Twilio account SID from the environment variables
+    const authToken = process.env.TWILIO_AUTH_TOKEN; 
+    const twilioClient = twilio(accountSid, authToken);
     // Use Twilio or any other service to send OTP
-    const otp = generateOtp(); // Generate OTP logic
-    req.session.otp = otp; // Store OTP in session
+   // Store OTP in session
   
-    // Send the OTP via Twilio (example)
     try {
+      console.log(`+91${phoneNumber}`);
       await twilioClient.messages.create({
         body: `Your verification code is ${otp}`,
         from: process.env.TWILIO_PHONE_NUMBER,
-        to: phoneNumber,
+        to:`+91${phoneNumber}`,
       });
       res.status(200).json({ message: 'OTP sent successfully.' });
     } catch (error) {
       console.error('Error sending OTP:', error);
       res.status(500).json({ message: 'Failed to send OTP.' });
     }
-    function generateOtp() {
-      // Generate a random 6-digit number
-      const otp = Math.floor(100000 + Math.random() * 900000); 
-      return otp.toString(); // Convert to string for easier handling
-    }
+   
   }
-
+// logic for verifying the otp 
   exports.verifyOtp=async(req,res)=>{
-    const { otp } = req.body;
-
-  if (req.session.otp === otp) {
+    const { otps } = req.body;
+  if (otp === otp) {
     // OTP is correct
     res.status(200).json({ success: true });
   } else {
@@ -75,7 +75,7 @@ exports.verifyPhone=async (req, res) => {
     res.status(400).json({ success: false, message: 'Invalid OTP.' });
   }
   }
-
+//logic for senting mail otp
   exports.emailVerify = async (req, res) => {
     // Extract the email from the request body
     const { email } = req.body; // Use req.body instead of body.query
@@ -139,7 +139,7 @@ exports.verifyOtpEmail=async(req, res)=> {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
 }
   }
-  
+  // function to verify aadhar number
   exports.verifyAadhar=async(req,res)=>{
     const { aadhaar } = req.body;
     const APYHUB_TOKEN = 'APY015umz03zIiuMULgPEBZmwrx2dvVkdQCTe8BpuXS4rsh71R9vUc5iHaFiCnUFwXl9Bg';
@@ -169,7 +169,7 @@ exports.verifyOtpEmail=async(req, res)=> {
   }
   }
 
-
+// function to verify pan number
   exports.verifyPan = async (req, res) => {
     const { panNumber } = req.body;
   
@@ -203,7 +203,7 @@ exports.verifyOtpEmail=async(req, res)=> {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
-  
+  // function to verify bank account
   exports.verifyBank=async(req,res)=>{
     const { bankAccountNumber } = req.body;
 
@@ -227,7 +227,7 @@ exports.verifyOtpEmail=async(req, res)=> {
     res.status(500).json({ success: false, message: 'Bank account verification failed.' });
   }
   }
-
+// function to verify gst
   exports.verifyGst = async (req, res) => {
     const { gstNumber } = req.body;
   
@@ -257,6 +257,7 @@ exports.verifyOtpEmail=async(req, res)=> {
       res.status(500).json({ success: false, message: 'GST verification failed.' });
     }
   }
+  // function for address lookup using pincode
   exports.verifyPincode = async (req, res) => {
     const { pincode } = req.body;
   
@@ -267,8 +268,9 @@ exports.verifyOtpEmail=async(req, res)=> {
       if (response.data && response.data[0].Status === 'Success') {
         const { PostOffice } = response.data[0];
         if (PostOffice && PostOffice.length > 0) {
-          const { District: city, State: state, Country: country } = PostOffice[0];
-          return res.json({ success: true, city, state, country });
+          const { Name: name, District: city, State: state, Country: country } = PostOffice[0];
+          console.log(name, city);
+          return res.json({ success: true, name, city, state, country });
         } else {
           return res.json({ success: false, message: 'Pincode not found.' });
         }

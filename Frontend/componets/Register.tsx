@@ -104,7 +104,7 @@ const RegistrationForm: React.FC = () => {
       if (isClient) {
         setTimeout(() => {
           sessionStorage.setItem('email',formData.email); 
-          router.push(`/verify/verifyEmail`);
+          router.push(`/verify/verifyPhone`);
         }, 3000); 
       }
     } catch (error) {

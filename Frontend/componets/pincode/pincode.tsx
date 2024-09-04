@@ -6,6 +6,7 @@ import styles from './pincode.module.css'; // Assuming you have some CSS for sty
 
 const Pincode: React.FC = () => {
   const [pincode, setPincode] = useState<string>(''); // State to store the pincode
+  const [name, setName] = useState<string>('');
   const [city, setCity] = useState<string>(''); // State to store the city
   const [state, setState] = useState<string>(''); // State to store the state
   const [country, setCountry] = useState<string>(''); // State to store the country
@@ -27,6 +28,8 @@ const Pincode: React.FC = () => {
       });
 
       if (response.data.success) {
+        setName(response.data.name);
+        
         setCity(response.data.city);
         setState(response.data.state);
         setCountry(response.data.country);
@@ -73,6 +76,7 @@ const Pincode: React.FC = () => {
       {city && state && country && (
         <div className={styles.results}>
           <h3>Verification Results</h3>
+          <p><strong>Name:</strong> {name}</p>
           <p><strong>City:</strong> {city}</p>
           <p><strong>State:</strong> {state}</p>
           <p><strong>Country:</strong> {country}</p>

@@ -8,7 +8,7 @@ const VerifyPhone: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [otp, setOtp] = useState<string>(''); // State for OTP input
+  const [otps, setOtp] = useState<string>(''); // State for OTP input
   const [otpError, setOtpError] = useState<string>(''); // State for OTP error message
 
   // Fetch phone number on component mount
@@ -22,7 +22,7 @@ const VerifyPhone: React.FC = () => {
         .then(response => {
           setPhoneNumber(response.data.phoneNumber);
           setMessage(`Phone number fetched: ${response.data.phoneNumber}`);
-          sendOtp(response.data.phoneNumber); // Automatically send OTP when phone number is fetched
+          // sendOtp(response.data.phoneNumber); // Automatically send OTP when phone number is fetched
         })
         .catch(error => {
           console.error('Error fetching phone number:', error);
@@ -33,8 +33,18 @@ const VerifyPhone: React.FC = () => {
     }
   }, []);
 
-  // Function to send OTP to the phone number
-  const sendOtp = async (phoneNumber: string) => {
+  // // Function to send OTP to the phone number
+  // const sendOtp = async (phoneNumber: string) => {
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/api/user/send-otp', { phoneNumber });
+  //     setMessage(response.data.message || 'OTP sent to your phone.');
+  //   } catch (error) {
+  //     console.error('Error sending OTP:', error);
+  //     setMessage('Failed to send OTP.');
+  //   }
+  // };
+
+  const handleSentOtp=async()=>{
     try {
       const response = await axios.post('http://localhost:5000/api/user/send-otp', { phoneNumber });
       setMessage(response.data.message || 'OTP sent to your phone.');
@@ -42,17 +52,18 @@ const VerifyPhone: React.FC = () => {
       console.error('Error sending OTP:', error);
       setMessage('Failed to send OTP.');
     }
-  };
+  }
 
   // Function to verify the entered OTP
   const handleVerifyOtp = async () => {
-    if (!otp) {
+    if (!otps) {
       setOtpError('Please enter the OTP.');
       return;
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/user/verify-otp', { phoneNumber, otp });
+      console.log(otps);
+      const response = await axios.post('http://localhost:5000/api/user/verify-otp', { otps });
       if (response.data.success) {
         setMessage('Phone number verified successfully!');
       } else {
@@ -68,16 +79,15 @@ const VerifyPhone: React.FC = () => {
   return (
     <div className={styles.container}>
       <h2 className={styles.heading}>Verify Phone Number</h2>
-      <p>{message}</p>
-      {phoneNumber && <p>Phone Number: {phoneNumber}</p>}
-
+{message}
+      <button onClick={handleSentOtp} className={styles.button}>Sent OTP</button>
       {/* OTP Input Field */}
       <div className={styles.formGroup}>
         <label className={styles.label}>Enter OTP:</label>
         <input
           type="text"
           name="otp"
-          value={otp}
+          value={otps}
           onChange={(e) => setOtp(e.target.value)}
           className={styles.input}
           placeholder="Enter the OTP sent to your phone"
@@ -87,7 +97,7 @@ const VerifyPhone: React.FC = () => {
 
       {/* Submit Button for OTP */}
       <button onClick={handleVerifyOtp} className={styles.button}>Verify OTP</button>
-      <button className={styles.button}><a href="/verify/verifyEmail"></a>Email verify</button>
+      <button className={styles.button}><a href="/verify/verifyEmail" className={styles.link}>Next</a></button>
     </div>
   );
 };
